@@ -12890,11 +12890,10 @@
 
   //draggable progress bar
   function progress (cell, onRendered, success, cancel, editorParams) {
-    var _element$getElementsB, _element$getElementsB2;
-
-    var element = cell.getElement(),
-        max = typeof editorParams.max === "undefined" ? ((_element$getElementsB = element.getElementsByTagName("div")[0]) === null || _element$getElementsB === void 0 ? void 0 : _element$getElementsB.getAttribute("max")) || 100 : editorParams.max,
-        min = typeof editorParams.min === "undefined" ? ((_element$getElementsB2 = element.getElementsByTagName("div")[0]) === null || _element$getElementsB2 === void 0 ? void 0 : _element$getElementsB2.getAttribute("min")) || 0 : editorParams.min,
+    var element = cell.getElement();
+    var first = element.getElementsByTagName("div")[0];
+    var max = typeof editorParams.max === "undefined" ? first != null ? first.getAttribute("max") : 100 : editorParams.max,
+        min = typeof editorParams.min === "undefined" ? first != null ? first.getAttribute("min") : 0 : editorParams.min,
         percent = (max - min) / 100,
         value = cell.getValue() || 0,
         handle = document.createElement("div"),

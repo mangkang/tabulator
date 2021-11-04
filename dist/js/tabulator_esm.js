@@ -666,7 +666,7 @@ class Ajax extends Module{
 
 	//send ajax request
 	sendRequest(silent){
-		var url = this.url;
+		var url = this.url;
 
 		this._loadDefaultConfig();
 
@@ -2020,7 +2020,7 @@ class Column$1 extends CoreFeature{
 
 	//build title element of column
 	_buildColumnHeaderTitle(){
-		var def = this.definition;
+		var def = this.definition;
 
 		var titleHolderElement = document.createElement("div");
 		titleHolderElement.classList.add("tabulator-col-title");
@@ -4802,7 +4802,7 @@ function maskInput(el, options){
 	var mask = options.mask,
 	maskLetter = typeof options.maskLetterChar !== "undefined" ? options.maskLetterChar : "A",
 	maskNumber = typeof options.maskNumberChar !== "undefined" ? options.maskNumberChar : "9",
-	maskWildcard = typeof options.maskWildcardChar !== "undefined" ? options.maskWildcardChar : "*";
+	maskWildcard = typeof options.maskWildcardChar !== "undefined" ? options.maskWildcardChar : "*";
 
 	function fillSymbols(index){
 		var symbol = mask[index];
@@ -6421,9 +6421,10 @@ function star(cell, onRendered, success, cancel, editorParams){
 
 //draggable progress bar
 function progress(cell, onRendered, success, cancel, editorParams){
-	var element = cell.getElement(),
-	max = typeof editorParams.max === "undefined" ? ( element.getElementsByTagName("div")[0]?.getAttribute("max") || 100) : editorParams.max,
-	min = typeof editorParams.min === "undefined" ? ( element.getElementsByTagName("div")[0]?.getAttribute("min") || 0) : editorParams.min,
+	var element = cell.getElement();
+	var first = element.getElementsByTagName("div")[0];
+	var max = typeof editorParams.max === "undefined" ? ( first != null ? first.getAttribute("max") : 100) : editorParams.max,
+	min = typeof editorParams.min === "undefined" ? ( first != null ? first.getAttribute("min") : 0) : editorParams.min,
 	percent = (max - min) / 100,
 	value = cell.getValue() || 0,
 	handle = document.createElement("div"),
@@ -8297,7 +8298,7 @@ class Filter extends Module{
 	//initialize column header filter
 	initializeColumn(column, value){
 		var self = this,
-		field = column.getField();
+		field = column.getField();
 
 		//handle successfull value change
 		function success(value){
@@ -11441,7 +11442,7 @@ class GroupRows extends Module{
 	}
 
 	updateGroupRows(force){
-		var output = [];
+		var output = [];
 
 		this.groupList.forEach((group) => {
 			output = output.concat(group.getHeadersAndRows());
@@ -11725,7 +11726,7 @@ class HtmlTableImport extends Module{
 		columns = options.columns,
 		headers = element.getElementsByTagName("th"),
 		rows = element.getElementsByTagName("tbody")[0],
-		data = [];
+		data = [];
 
 		this.hasIndex = false;
 
@@ -13177,7 +13178,7 @@ class MoveRows extends Module{
 
 	initializeGroupHeader(group){
 		var self = this,
-		config = {};
+		config = {};
 
 		//inter table drag drop
 		config.mouseup = function(e){
@@ -13496,7 +13497,7 @@ class MoveRows extends Module{
 	moveHoverTable(e){
 		var rowHolder = this.table.rowManager.getElement(),
 		scrollTop = rowHolder.scrollTop,
-		yPos = ((this.touchMove ? e.touches[0].pageY : e.pageY) - rowHolder.getBoundingClientRect().top) + scrollTop;
+		yPos = ((this.touchMove ? e.touches[0].pageY : e.pageY) - rowHolder.getBoundingClientRect().top) + scrollTop;
 
 		this.hoverElement.style.top = (yPos - this.startY) + "px";
 	}
@@ -17362,7 +17363,7 @@ class Sort extends Module{
 		var self = this,
 		sortList = this.table.options.sortOrderReverse ? self.sortList.slice().reverse() : self.sortList,
 		sortListActual = [],
-		rowComponents = [];
+		rowComponents = [];
 
 		if(this.subscribedExternal("dataSorting")){
 			this.dispatchExternal("dataSorting", self.getSort());
@@ -20603,7 +20604,7 @@ class RowManager extends CoreFeature{
 		var table = this.table,
 		stage = "",
 		index = 0,
-		cascadeOrder = ["all", "dataPipeline", "display", "displayPipeline", "end"];
+		cascadeOrder = ["all", "dataPipeline", "display", "displayPipeline", "end"];
 
 
 		if(typeof handler === "function"){
@@ -20947,7 +20948,7 @@ class RowManager extends CoreFeature{
 
 	//adjust the height of the table holder to fit in the Tabulator element
 	adjustTableSize(){
-		var initialHeight = this.element.clientHeight;
+		var initialHeight = this.element.clientHeight;
 
 		if(this.renderer.verticalFillMode === "fill"){
 			let otherHeight =  Math.floor(this.table.columnManager.getElement().getBoundingClientRect().height + (this.table.footerManager && this.table.footerManager.active && !this.table.footerManager.external ? this.table.footerManager.getElement().getBoundingClientRect().height : 0));
