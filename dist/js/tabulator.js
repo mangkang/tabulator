@@ -1208,6 +1208,8 @@
       value: function checkDefinition() {
         var _this2 = this;
 
+        console.log('Column.defaultOptionList ', Column.defaultOptionList);
+        console.log('this.definition ', this.definition);
         Object.keys(this.definition).forEach(function (key) {
           if (Column.defaultOptionList.indexOf(key) === -1) {
             console.warn("Invalid column definition option in '" + (_this2.field || _this2.definition.title) + "' column:", key);

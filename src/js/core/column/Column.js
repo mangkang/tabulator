@@ -104,6 +104,8 @@ class Column extends CoreFeature{
 	}
 
 	checkDefinition(){
+		console.log('Column.defaultOptionList ', Column.defaultOptionList )
+		console.log('this.definition ', this.definition)
 		Object.keys(this.definition).forEach((key) => {
 			if(Column.defaultOptionList.indexOf(key) === -1){
 				console.warn("Invalid column definition option in '" + (this.field || this.definition.title) + "' column:", key)
