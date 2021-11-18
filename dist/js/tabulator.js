@@ -12892,16 +12892,10 @@
 
   //draggable progress bar
   function progress (cell, onRendered, success, cancel, editorParams) {
+    var _element$getElementsB, _element$getElementsB2;
+
     var element = cell.getElement();
-    var first = element.getElementsByTagName("div")[0];
-    var max = typeof editorParams.max === "undefined" ? first != null ? first.getAttribute("max") : 100 : editorParams.max,
-        min = typeof editorParams.min === "undefined" ? first != null ? first.getAttribute("min") : 0 : editorParams.min,
-        percent = (max - min) / 100,
-        value = cell.getValue() || 0,
-        handle = document.createElement("div"),
-        bar = document.createElement("div"),
-        mouseDrag,
-        mouseDragWidth; //set new value
+    max = typeof editorParams.max === "undefined" ? ((_element$getElementsB = element.getElementsByTagName("div")[0]) === null || _element$getElementsB === void 0 ? void 0 : _element$getElementsB.getAttribute("max")) || 100 : editorParams.max, min = typeof editorParams.min === "undefined" ? ((_element$getElementsB2 = element.getElementsByTagName("div")[0]) === null || _element$getElementsB2 === void 0 ? void 0 : _element$getElementsB2.getAttribute("min")) || 0 : editorParams.min, percent = (max - min) / 100, value = cell.getValue() || 0, handle = document.createElement("div"), bar = document.createElement("div"), mouseDrag, mouseDragWidth; //set new value
 
     function updateValue() {
       var style = window.getComputedStyle(element, null);
@@ -16038,7 +16032,7 @@
     return this.table.rowManager.activeRows.indexOf(cell.getRow()._getSelf()) + 1;
   }
 
-  function handle (cell, formatterParams, onRendered) {
+  function handle$1 (cell, formatterParams, onRendered) {
     cell.getElement().classList.add("tabulator-row-handle");
     return "<div class='tabulator-row-handle-box'><div class='tabulator-row-handle-bar'></div><div class='tabulator-row-handle-bar'></div><div class='tabulator-row-handle-bar'></div></div>";
   }
@@ -16130,7 +16124,7 @@
     buttonTick: buttonTick,
     buttonCross: buttonCross,
     rownum: rownum,
-    handle: handle,
+    handle: handle$1,
     responsiveCollapse: responsiveCollapse,
     rowSelection: rowSelection
   };
