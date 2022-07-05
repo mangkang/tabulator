@@ -63,7 +63,7 @@ class Export extends Module{
 			switch(range){
 				case true:
 				case "visible":
-				rows = this.table.rowManager.getVisibleRows(true);
+				rows = this.table.rowManager.getVisibleRows(false, true);
 				break;
 
 				case "all":
@@ -208,7 +208,8 @@ class Export extends Module{
 
 			header.forEach((col) => {
 				if(col){
-					columns.push(new ExportColumn(col.title, col.column.getComponent(), col.width, col.height, col.depth));
+					let title = typeof col.title === "undefined" ? "" : col.title;
+					columns.push(new ExportColumn(title, col.column.getComponent(), col.width, col.height, col.depth));
 				}else{
 					columns.push(null);
 				}
@@ -466,10 +467,10 @@ class Export extends Module{
 		rowEl.classList.add("tabulator-print-table-row");
 
 		row.columns.forEach((col) => {
-
 			if(col){
 				var cellEl = document.createElement("td"),
 				column = col.component._column,
+				index = this.table.columnManager.findColumnIndex(column),
 				value = col.value;
 
 				var cellWrapper = {
@@ -509,11 +510,10 @@ class Export extends Module{
 				}else{
 					switch(typeof value){
 						case "object":
-						value = JSON.stringify(value);
+						value = value !== null ? JSON.stringify(value) : "";
 						break;
 
 						case "undefined":
-						case "null":
 						value = "";
 						break;
 
@@ -528,8 +528,8 @@ class Export extends Module{
 					cellEl.innerHTML = value;
 				}
 
-				if(styles.firstCell){
-					this.mapElementStyles(styles.firstCell, cellEl, ["padding-top", "padding-left", "padding-right", "padding-bottom", "border-top", "border-left", "border-right", "border-bottom", "color", "font-weight", "font-family", "font-size"]);
+				if(styles.styleCells[index] || styles.firstCell){
+					this.mapElementStyles(styles.styleCells[index] || styles.firstCell, cellEl, ["padding-top", "padding-left", "padding-right", "padding-bottom", "border-top", "border-left", "border-right", "border-bottom", "color", "font-weight", "font-family", "font-size", "text-align"]);
 
 					if(column.definition.align){
 						cellEl.style.textAlign = column.definition.align;

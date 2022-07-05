@@ -47,13 +47,13 @@ class GroupRows extends Module{
 	initialize(){
 		if(this.table.options.groupBy){
 
-			this.configureGroupSetup();
-
 			if(this.table.options.groupUpdateOnCellEdit){
 				this.subscribe("cell-value-updated", this.cellUpdated.bind(this));
 				this.subscribe("row-data-changed", this.reassignRowToGroup.bind(this), 0);
 			}
 
+			this.subscribe("table-built", this.configureGroupSetup.bind(this));
+			
 			this.subscribe("row-deleting", this.rowDeleting.bind(this));
 			this.subscribe("row-deleted", this.rowsUpdated.bind(this));
 			this.subscribe("scroll-horizontal", this.scrollHeaders.bind(this));
@@ -225,7 +225,12 @@ class GroupRows extends Module{
 
 	setGroupBy(groups){
 		this.table.options.groupBy = groups;
-		this.configureGroupSetup();
+		if(!this.initialized){
+			this.initialize();
+		}else{
+			this.configureGroupSetup();
+		}
+
 		this.refreshData();
 
 		this.trackChanges();
@@ -430,6 +435,10 @@ class GroupRows extends Module{
 
 	getRowGroup(row){
 		var match = false;
+
+		if(this.options("dataTree")){
+			row = this.table.modules.dataTree.getTreeParentRoot(row);
+		}
 
 		this.groupList.forEach((group) => {
 			var result = group.getRowGroup(row);

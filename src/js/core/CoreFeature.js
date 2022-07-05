@@ -8,8 +8,8 @@ export default class CoreFeature{
 	/////////////// DataLoad /////////////////
 	//////////////////////////////////////////
 
-	reloadData(data, silent){
-		return this.table.dataLoader.load(data, undefined, undefined, undefined, silent);
+	reloadData(data, silent, columnsChanged){
+		return this.table.dataLoader.load(data, undefined, undefined, undefined, silent, columnsChanged);
 	}
 
 	//////////////////////////////////////////
@@ -102,11 +102,7 @@ export default class CoreFeature{
 	//////////////// Options /////////////////
 	//////////////////////////////////////////
 
-	options(key, value){
-		if(typeof value !== "undefined"){
-			this.table.options[key] = value;
-		}
-
+	options(key){
 		return this.table.options[key];
 	}
 

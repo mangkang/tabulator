@@ -266,10 +266,11 @@ class Filter extends Module{
 					}
 
 					self.headerFilters[field] = {value:value, func:filterFunc, type:type, params:params || {}};
-
 				}else{
 					delete self.headerFilters[field];
 				}
+
+				column.modules.filter.value = value;
 
 				filterChangeCheck = JSON.stringify(self.headerFilters);
 
@@ -299,6 +300,8 @@ class Filter extends Module{
 		success = column.modules.filter.success,
 		field = column.getField(),
 		filterElement, editor, editorElement, cellWrapper, typingTimer, searchTrigger, params;
+
+		column.modules.filter.value = initialValue;
 
 		//handle aborted edit
 		function cancel(){}
@@ -382,7 +385,7 @@ class Filter extends Module{
 
 				params = column.definition.headerFilterParams || {};
 
-				params = typeof params === "function" ? params.call(self.table) : params;
+				params = typeof params === "function" ? params.call(self.table, cellWrapper) : params;
 
 				editorElement = editor.call(this.table.modules.edit, cellWrapper, function(){}, success, cancel, params);
 
@@ -416,7 +419,9 @@ class Filter extends Module{
 				editorElement.addEventListener("focus", (e) => {
 					var left = this.table.columnManager.element.scrollLeft;
 
-					if(left !== this.table.rowManager.element.scrollLeft){
+					var headerPos = this.table.rowManager.element.scrollLeft + parseInt(this.table.columnManager.element.style.marginLeft);
+
+					if(left !== headerPos){
 						this.table.rowManager.scrollHorizontal(left);
 						this.table.columnManager.scrollHorizontal(left);
 					}
@@ -520,7 +525,7 @@ class Filter extends Module{
 	//programmatically get value of header filter
 	getHeaderFilterValue(column){
 		if(column.modules.filter && column.modules.filter.headerElement){
-			return column.modules.filter.headerElement.value;
+			return column.modules.filter.value;
 		} else {
 			console.warn("Column Filter Error - No header filter set on column:", column.getField());
 		}
@@ -551,9 +556,9 @@ class Filter extends Module{
 	refreshFilter(){
 		if(this.tableInitialized){
 			if(this.table.options.filterMode === "remote"){
-				this.reloadData();
+				this.reloadData(null, false, false);
 			}else{
-				this.refreshData();
+				this.refreshData(true);
 			}
 		}
 
@@ -595,12 +600,11 @@ class Filter extends Module{
 		}
 
 		field.forEach((filter) => {
-
 			filter = this.findFilter(filter);
 
 			if(filter){
 				this.filterList.push(filter);
-				this.changed = true;
+				changed = true;
 			}
 		});
 
@@ -820,7 +824,7 @@ class Filter extends Module{
 		activeRowComponents = [];
 
 		if(this.subscribedExternal("dataFiltering")){
-			this.dispatchExternal("dataFiltering", this.getFilters());
+			this.dispatchExternal("dataFiltering", this.getFilters(true));
 		}
 
 		if(this.table.options.filterMode !== "remote" && (this.filterList.length || Object.keys(this.headerFilters).length)){
@@ -841,7 +845,7 @@ class Filter extends Module{
 				activeRowComponents.push(row.getComponent());
 			});
 
-			this.dispatchExternal("dataFiltered", this.getFilters(), activeRowComponents);
+			this.dispatchExternal("dataFiltered", this.getFilters(true), activeRowComponents);
 		}
 
 		return activeRows;

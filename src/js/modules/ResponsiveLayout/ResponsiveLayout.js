@@ -21,7 +21,7 @@ class ResponsiveLayout extends Module{
 		this.registerColumnOption("responsive");
 	}
 
-	//generate resposive columns list
+	//generate responsive columns list
 	initialize(){
 		var self = this,
 		columns = [];
@@ -60,15 +60,15 @@ class ResponsiveLayout extends Module{
 		this.collapseStartOpen = this.table.options.responsiveLayoutCollapseStartOpen;
 		this.hiddenColumns = [];
 
-		//detemine level of responsivity for each column
-		this.table.columnManager.columnsByIndex.forEach(function(column, i){
+		//determine level of responsivity for each column
+		this.table.columnManager.columnsByIndex.forEach((column, i) => {
 			if(column.modules.responsive){
 				if(column.modules.responsive.order && column.modules.responsive.visible){
 					column.modules.responsive.index = i;
 					columns.push(column);
 
-					if(!column.visible && self.mode === "collapse"){
-						self.hiddenColumns.push(column);
+					if(!column.visible && this.mode === "collapse"){
+						this.hiddenColumns.push(column);
 					}
 				}
 			}
@@ -76,7 +76,7 @@ class ResponsiveLayout extends Module{
 
 		//sort list by responsivity
 		columns = columns.reverse();
-		columns = columns.sort(function(a, b){
+		columns = columns.sort((a, b) => {
 			var diff = b.modules.responsive.order - a.modules.responsive.order;
 			return diff || (b.modules.responsive.index - a.modules.responsive.index);
 		});
@@ -142,10 +142,8 @@ class ResponsiveLayout extends Module{
 	updateColumnVisibility(column, responsiveToggle){
 		if(!responsiveToggle && column.modules.responsive){
 			column.modules.responsive.visible = column.visible;
-			this.initialize();
+			this.initializeResponsivity();
 		}
-
-		//this.update();
 	}
 
 	hideColumn(column){
@@ -324,7 +322,7 @@ class ResponsiveLayout extends Module{
 			var titleHighlight = document.createElement("strong");
 			titleData.appendChild(titleHighlight);
 			this.langBind("columns|" + item.field, function(text){
-				titleHighlight.innerText = text || item.title;
+				titleHighlight.innerHTML = text || item.title;
 			});
 
 			if(item.value instanceof Node){

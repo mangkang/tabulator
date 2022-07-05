@@ -1,3 +1,5 @@
+import Column from './Column.js';
+
 //public column object
 export default class ColumnComponent {
 	constructor (column){
@@ -25,6 +27,10 @@ export default class ColumnComponent {
 
 	getField(){
 		return this._column.getField();
+	}
+
+	getTitleDownload() {
+		return this._column.getTitleDownload();
 	}
 
 	getCells(){

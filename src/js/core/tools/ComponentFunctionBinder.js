@@ -1,4 +1,4 @@
-export default class ComponentFuctionBinder{
+export default class ComponentFunctionBinder{
 
 	constructor(table){
 		this.table = table;
@@ -12,14 +12,14 @@ export default class ComponentFuctionBinder{
 		}
 
 		if(this.bindings[type][funcName]){
-			console.warn("Unable to bind component handler, a matching function name is already bound", type, funcName, hanlder)
+			console.warn("Unable to bind component handler, a matching function name is already bound", type, funcName, handler)
 		}else{
 			this.bindings[type][funcName] = handler;
 		}
 	}
 
 	handle(type, component, name){
-		if(this.bindings[type] && this.bindings[type][name]){
+		if(this.bindings[type] && this.bindings[type][name] && typeof this.bindings[type][name].bind === 'function'){
 			return this.bindings[type][name].bind(null, component);
 		}else{
 			if(name !== "then" && typeof name === "string" && !name.startsWith("_")){

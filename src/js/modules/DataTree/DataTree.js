@@ -38,17 +38,16 @@ class DataTree extends Module{
 		this.registerComponentFunction("row", "getTreeParent", this.getTreeParent.bind(this));
 		this.registerComponentFunction("row", "getTreeChildren", this.getRowChildren.bind(this));
 		this.registerComponentFunction("row", "addTreeChild", this.addTreeChildRow.bind(this));
+		this.registerComponentFunction("row", "isTreeExpanded", this.isRowExpanded.bind(this));
 	}
 
 	initialize(){
 		if(this.table.options.dataTree){
 			var dummyEl = null,
-			firstCol = this.table.columnManager.getFirstVisibileColumn(),
 			options = this.table.options;
 
 			this.field = options.dataTreeChildField;
 			this.indent = options.dataTreeChildIndent;
-			this.elementField = options.dataTreeElementColumn || (firstCol ? firstCol.field : false);
 
 			if(options.dataTreeBranchElement){
 
@@ -117,15 +116,36 @@ class DataTree extends Module{
 
 			this.subscribe("row-init", this.initializeRow.bind(this));
 			this.subscribe("row-layout-after", this.layoutRow.bind(this));
-			this.subscribe("row-relayout", this.layoutRow.bind(this));
 			this.subscribe("row-deleted", this.rowDelete.bind(this),0);
 			this.subscribe("row-data-changed", this.rowDataChanged.bind(this), 10);
+			this.subscribe("cell-value-updated", this.cellValueChanged.bind(this));
+			this.subscribe("edit-cancelled", this.cellValueChanged.bind(this));
 			this.subscribe("column-moving-rows", this.columnMoving.bind(this));
+			this.subscribe("table-built", this.initializeElementField.bind(this));
+			this.subscribe("table-redrawing", this.tableRedrawing.bind(this));
 
 			this.registerDisplayHandler(this.getRows.bind(this), 30);
 		}
 	}
 
+	tableRedrawing(force){
+		var rows;
+
+		if(force){
+			rows = this.table.rowManager.getRows();
+			
+			rows.forEach((row) => {
+				this.reinitializeRowChildren(row);
+			});
+		}
+	}
+
+	initializeElementField(){
+		var firstCol = this.table.columnManager.getFirstVisibleColumn();
+
+		this.elementField = this.table.options.dataTreeElementColumn || (firstCol ? firstCol.field : false);
+	}
+	
 	getRowChildren(row){
 		return this.getTreeChildren(row, true);
 	}
@@ -148,6 +168,14 @@ class DataTree extends Module{
 				this.layoutRow(row);
 				this.refreshData(true);
 			}
+		}
+	}
+
+	cellValueChanged(cell){
+		var field = cell.column.getField();
+
+		if(field === this.elementField){
+			this.layoutRow(cell.row);
 		}
 	}
 
@@ -396,8 +424,16 @@ class DataTree extends Module{
 		}
 	}
 
+	isRowExpanded(row){
+		return row.modules.dataTree.open;
+	}
+
 	getTreeParent(row){
 		return row.modules.dataTree.parent ? row.modules.dataTree.parent.getComponent() : false;
+	}
+
+	getTreeParentRoot(row){
+		return row.modules.dataTree.parent ? this.getTreeParentRoot(row.modules.dataTree.parent) : row;
 	}
 
 	getFilteredTreeChildren(row){
@@ -553,12 +589,6 @@ class DataTree extends Module{
 		}
 
 		return output;
-	}
-
-	checkForRestyle(cell){
-		if(!cell.row.cells.indexOf(cell)){
-			this.layoutRow(cell.row);
-		}
 	}
 
 	getChildField(){

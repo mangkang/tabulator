@@ -1,8 +1,8 @@
 import Module from '../../core/Module.js';
 import Helpers from '../../core/tools/Helpers.js';
 
-import Cell from '../../core/cell/Cell';
-import Column from '../../core/column/Column';
+import Cell from '../../core/cell/Cell.js';
+import Column from '../../core/column/Column.js';
 
 class Interaction extends Module{
 
@@ -81,6 +81,11 @@ class Interaction extends Module{
 				tapHold:null,
 			},
 			column:{
+				tap:null,
+				tapDbl:null,
+				tapHold:null,
+			},
+			group:{
 				tap:null,
 				tapDbl:null,
 				tapHold:null,

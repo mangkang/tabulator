@@ -204,9 +204,9 @@ class Sort extends Module{
 
 	refreshSort(){
 		if(this.table.options.sortMode === "remote"){
-			this.reloadData();
+			this.reloadData(null, false, false);
 		}else{
-			this.refreshData()
+			this.refreshData(true);
 		}
 
 		//TODO - Persist left position of row manager
@@ -378,7 +378,7 @@ class Sort extends Module{
 	//set the column header sort direction
 	setColumnHeader(column, dir){
 		column.modules.sort.dir = dir;
-		column.getElement().setAttribute("aria-sort", dir);
+		column.getElement().setAttribute("aria-sort", dir === "asc" ? "ascending" : "descending");
 	}
 
 	//sort each item in sort list

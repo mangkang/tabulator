@@ -52,14 +52,14 @@ class Edit extends Module{
 		this.subscribe("column-layout", this.initializeColumnCheck.bind(this));
 		this.subscribe("column-delete", this.columnDeleteCheck.bind(this));
 		this.subscribe("row-deleting", this.rowDeleteCheck.bind(this));
-		this.subscribe("data-refeshing", this.cancelEdit.bind(this));
+		this.subscribe("data-refreshing", this.cancelEdit.bind(this));
 
-		this.subscribe("keybinding-nav-prev", this.navigatePrev.bind(this));
+		this.subscribe("keybinding-nav-prev", this.navigatePrev.bind(this, undefined));
 		this.subscribe("keybinding-nav-next", this.keybindingNavigateNext.bind(this));
-		this.subscribe("keybinding-nav-left", this.navigateLeft.bind(this));
-		this.subscribe("keybinding-nav-right", this.navigateRight.bind(this));
-		this.subscribe("keybinding-nav-up", this.navigateUp.bind(this));
-		this.subscribe("keybinding-nav-down", this.navigateDown.bind(this));
+		this.subscribe("keybinding-nav-left", this.navigateLeft.bind(this, undefined));
+		this.subscribe("keybinding-nav-right", this.navigateRight.bind(this, undefined));
+		this.subscribe("keybinding-nav-up", this.navigateUp.bind(this, undefined));
+		this.subscribe("keybinding-nav-down", this.navigateDown.bind(this, undefined));
 	}
 
 
@@ -72,7 +72,7 @@ class Edit extends Module{
 		newRow = this.options("tabEndNewRow");
 
 		if(cell){
-			if(!this.navigateNext(e)){
+			if(!this.navigateNext(cell, e)){
 				if(newRow){
 					cell.getElement().firstChild.blur();
 
@@ -88,7 +88,7 @@ class Edit extends Module{
 
 					newRow.then(() => {
 						setTimeout(() => {
-							nav.next();
+							cell.getComponent().navigateNext();
 						})
 					});
 				}
@@ -118,7 +118,7 @@ class Edit extends Module{
 	///////////////////////////////////
 	clearCellEdited(cells){
 		if(!cells){
-			cells = this.modules.edit.getEditedCells();
+			cells = this.table.modules.edit.getEditedCells();
 		}
 
 		if(!Array.isArray(cells)){
@@ -126,13 +126,12 @@ class Edit extends Module{
 		}
 
 		cells.forEach((cell) => {
-			this.modules.edit.clearEdited(cell._getSelf());
+			this.table.modules.edit.clearEdited(cell._getSelf());
 		});
 	}
 
-	navigatePrev(e){
-		var cell = this.currentCell,
-		nextCell, prevRow;
+	navigatePrev(cell = this.currentCell, e){
+		var nextCell, prevRow;
 
 		if(cell){
 
@@ -161,9 +160,8 @@ class Edit extends Module{
 		return false;
 	}
 
-	navigateNext(e){
-		var cell = this.currentCell,
-		nextCell, nextRow;
+	navigateNext(cell = this.currentCell, e){
+		var nextCell, nextRow;
 
 		if(cell){
 
@@ -192,9 +190,8 @@ class Edit extends Module{
 		return false;
 	}
 
-	navigateLeft(e){
-		var cell = this.currentCell,
-		index, nextCell;
+	navigateLeft(cell = this.currentCell, e){
+		var index, nextCell;
 
 		if(cell){
 
@@ -214,9 +211,8 @@ class Edit extends Module{
 		return false;
 	}
 
-	navigateRight(e){
-		var cell = this.currentCell,
-		index, nextCell;
+	navigateRight(cell = this.currentCell, e){
+		var index, nextCell;
 
 		if(cell){
 
@@ -236,9 +232,8 @@ class Edit extends Module{
 		return false;
 	}
 
-	navigateUp(e){
-		var cell = this.currentCell,
-		index, nextRow;
+	navigateUp(cell = this.currentCell, e){
+		var index, nextRow;
 
 		if(cell){
 
@@ -258,9 +253,8 @@ class Edit extends Module{
 		return false;
 	}
 
-	navigateDown(e){
-		var cell = this.currentCell,
-		index, nextRow;
+	navigateDown(cell = this.currentCell, e){
+		var index, nextRow;
 
 		if(cell){
 
@@ -410,15 +404,10 @@ class Edit extends Module{
 
 			cellEl = cell.getElement();
 
-			if(cancel){
-				if(cell.validate){
-					cell.validate();
-				}
-			}else{
-				cellEl.classList.remove("tabulator-validation-fail");
-			}
+			this.dispatch("edit-editor-clear", cell, cancel);
 
 			cellEl.classList.remove("tabulator-editing");
+
 			while(cellEl.firstChild) cellEl.removeChild(cellEl.firstChild);
 
 			cell.row.getElement().classList.remove("tabulator-row-editing");
@@ -442,6 +431,7 @@ class Edit extends Module{
 				cell.column.definition.cellEditCancelled.call(this.table, component);
 			}
 
+			this.dispatch("edit-cancelled", cell);
 			this.dispatchExternal("cellEditCancelled", component);
 		}
 	}
@@ -547,14 +537,10 @@ class Edit extends Module{
 			return;
 		}
 
-		//handle successfull value change
+		//handle successful value change
 		function success(value){
 			if(self.currentCell === cell){
-				var valid = true;
-
-				if(cell.column.modules.validate && self.table.modExists("validate") && self.table.options.validationMode != "manual"){
-					valid = self.table.modules.validate.validate(cell.column.modules.validate, cell, value);
-				}
+				var valid = self.chain("edit-success", [cell, value], true, true);
 
 				if(valid === true || self.table.options.validationMode === "highlight"){
 					self.clearEditor();
@@ -572,23 +558,11 @@ class Edit extends Module{
 
 					cell.setValue(value, true);
 
-					if(self.table.options.dataTree && self.table.modExists("dataTree")){
-						self.table.modules.dataTree.checkForRestyle(cell);
-					}
-
-					if(valid !== true){
-						element.classList.add("tabulator-validation-fail");
-						self.table.externalEvents.dispatch("validationFailed", cell.getComponent(), value, valid);
-						return false;
-					}
-
-					return true;
+					return valid === true;
 				}else{
 					self.invalidEdit = true;
-					element.classList.add("tabulator-validation-fail");
 					self.focusCellNoEvent(cell, true);
 					rendered();
-					self.table.externalEvents.dispatch("validationFailed", cell.getComponent(), value, valid);
 					return false;
 				}
 			}else{
@@ -600,10 +574,6 @@ class Edit extends Module{
 		function cancel(){
 			if(self.currentCell === cell){
 				self.cancelEdit();
-
-				if(self.table.options.dataTree && self.table.modExists("dataTree")){
-					self.table.modules.dataTree.checkForRestyle(cell);
-				}
 			}else{
 				// console.warn("Edit Success Error - cannot call cancel on a cell that is no longer being edited");
 			}
@@ -650,6 +620,7 @@ class Edit extends Module{
 					cell.column.definition.cellEditing.call(this.table, component);
 				}
 
+				this.dispatch("cell-editing", cell);
 				this.dispatchExternal("cellEditing", component);
 
 				params = typeof cell.column.modules.edit.params === "function" ? cell.column.modules.edit.params(component) : cell.column.modules.edit.params;
@@ -716,9 +687,7 @@ class Edit extends Module{
 		if(cell.modules.edit && cell.modules.edit.edited){
 			cell.modules.edit.edited = false;
 
-			if(cell.modules.validate){
-				cell.modules.validate.invalid = false;
-			}
+			this.dispatch("edit-edited-clear", cell);
 		}
 
 		editIndex = this.editedCells.indexOf(cell);

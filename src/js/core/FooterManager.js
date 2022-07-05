@@ -7,20 +7,29 @@ export default class FooterManager extends CoreFeature{
 
 		this.active = false;
 		this.element = this.createElement(); //containing element
+		this.containerElement = this.createContainerElement(); //containing element
 		this.external = false;
-		this.links = [];
-
-		this.initializeElement();
 	}
 
 	initialize(){
 		this.initializeElement();
 	}
 
-	createElement (){
+	createElement(){
 		var el = document.createElement("div");
 
 		el.classList.add("tabulator-footer");
+
+		return el;
+	}
+
+	
+	createContainerElement(){
+		var el = document.createElement("div");
+
+		el.classList.add("tabulator-footer-contents");
+
+		this.element.appendChild(el);
 
 		return el;
 	}
@@ -31,10 +40,10 @@ export default class FooterManager extends CoreFeature{
 			switch(typeof this.table.options.footerElement){
 				case "string":
 				if(this.table.options.footerElement[0] === "<"){
-					this.element.innerHTML = this.table.options.footerElement;
+					this.containerElement.innerHTML = this.table.options.footerElement;
 				}else{
 					this.external = true;
-					this.element = document.querySelector(this.table.options.footerElement);
+					this.containerElement = document.querySelector(this.table.options.footerElement);
 				}
 				break;
 
@@ -49,15 +58,15 @@ export default class FooterManager extends CoreFeature{
 		return this.element;
 	}
 
-	append(element, parent){
-		this.activate(parent);
+	append(element){
+		this.activate();
 
-		this.element.appendChild(element);
+		this.containerElement.appendChild(element);
 		this.table.rowManager.adjustTableSize();
 	}
 
-	prepend(element, parent){
-		this.activate(parent);
+	prepend(element){
+		this.activate();
 
 		this.element.insertBefore(element, this.element.firstChild);
 		this.table.rowManager.adjustTableSize();
@@ -77,7 +86,7 @@ export default class FooterManager extends CoreFeature{
 		}
 	}
 
-	activate(parent){
+	activate(){
 		if(!this.active){
 			this.active = true;
 			if(!this.external){
@@ -85,15 +94,9 @@ export default class FooterManager extends CoreFeature{
 				this.table.element.style.display = '';
 			}
 		}
-
-		if(parent){
-			this.links.push(parent);
-		}
 	}
 
 	redraw(){
-		this.links.forEach(function(link){
-			link.footerRedraw();
-		});
+		this.dispatch("footer-redraw")
 	}
 }

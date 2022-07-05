@@ -20,7 +20,6 @@ class Column extends CoreFeature{
 		this.titleElement = false;
 		this.groupElement = this.createGroupElement(); //column group holder element
 		this.isGroup = false;
-		this.tooltip = false; //hold column tooltip
 		this.hozAlign = ""; //horizontal text alignment
 		this.vertAlign = ""; //vert text alignment
 
@@ -30,6 +29,7 @@ class Column extends CoreFeature{
 		this.getFieldValue = "";
 		this.setFieldValue = "";
 
+		this.titleDownload = null;
 		this.titleFormatterRendered = false;
 
 		this.mapDefinitions();
@@ -42,6 +42,7 @@ class Column extends CoreFeature{
 		this.widthStyled = ""; //column width prestyled to improve render efficiency
 		this.maxWidth = null; //column maximum width
 		this.maxWidthStyled = ""; //column maximum prestyled to improve render efficiency
+		this.maxInitialWidth = null;
 		this.minWidth = null; //column minimum width
 		this.minWidthStyled = ""; //column minimum prestyled to improve render efficiency
 		this.widthFixed = false; //user has specified a width for this column
@@ -143,39 +144,6 @@ class Column extends CoreFeature{
 		//all previously deprecated functionality removed in the 5.0 release
 	}
 
-	setTooltip(){
-		var def = this.definition;
-
-		//set header tooltips
-		var tooltip = typeof def.headerTooltip === "undefined" ? def.tooltip : def.headerTooltip;
-
-		if(tooltip){
-			if(tooltip === true){
-				if(def.field){
-					this.langBind("columns|" + def.field, (value) => {
-						this.element.setAttribute("title", value || def.title);
-					});
-				}else{
-					this.element.setAttribute("title", def.title);
-				}
-
-			}else{
-				if(typeof(tooltip) == "function"){
-					tooltip = tooltip(this.getComponent());
-
-					if(tooltip === false){
-						tooltip = "";
-					}
-				}
-
-				this.element.setAttribute("title", tooltip);
-			}
-
-		}else{
-			this.element.setAttribute("title", "");
-		}
-	}
-
 	//build header element
 	_initialize(){
 		var def = this.definition;
@@ -190,8 +158,6 @@ class Column extends CoreFeature{
 			}
 		}
 
-		this.contentElement = this._bindEvents();
-
 		this.contentElement = this._buildColumnHeaderContent();
 
 		this.element.appendChild(this.contentElement);
@@ -202,91 +168,7 @@ class Column extends CoreFeature{
 			this._buildColumnHeader();
 		}
 
-		this.setTooltip();
-
 		this.dispatch("column-init", this);
-
-		//update header tooltip on mouse enter
-		this.element.addEventListener("mouseenter", (e) => {
-			this.setTooltip();
-		});
-	}
-
-	_bindEvents(){
-		var def = this.definition,
-		dblTap,	tapHold, tap;
-
-		//setup header click event bindings
-		if(typeof(def.headerClick) == "function"){
-			this.element.addEventListener("click", (e) => {def.headerClick(e, this.getComponent());});
-		}
-
-		if(typeof(def.headerDblClick) == "function"){
-			this.element.addEventListener("dblclick", (e) => {def.headerDblClick(e, this.getComponent());});
-		}
-
-		if(typeof(def.headerContext) == "function"){
-			this.element.addEventListener("contextmenu", (e) => {def.headerContext(e, this.getComponent());});
-		}
-
-		//setup header tap event bindings
-		if(typeof(def.headerTap) == "function"){
-			tap = false;
-
-			this.element.addEventListener("touchstart", (e) => {
-				tap = true;
-			}, {passive: true});
-
-			this.element.addEventListener("touchend", (e) => {
-				if(tap){
-					def.headerTap(e, this.getComponent());
-				}
-
-				tap = false;
-			});
-		}
-
-		if(typeof(def.headerDblTap) == "function"){
-			dblTap = null;
-
-			this.element.addEventListener("touchend", (e) => {
-
-				if(dblTap){
-					clearTimeout(dblTap);
-					dblTap = null;
-
-					def.headerDblTap(e, this.getComponent());
-				}else{
-
-					dblTap = setTimeout(() => {
-						clearTimeout(dblTap);
-						dblTap = null;
-					}, 300);
-				}
-
-			});
-		}
-
-		if(typeof(def.headerTapHold) == "function"){
-			tapHold = null;
-
-			this.element.addEventListener("touchstart", (e) => {
-				clearTimeout(tapHold);
-
-				tapHold = setTimeout(function(){
-					clearTimeout(tapHold);
-					tapHold = null;
-					tap = false;
-					def.headerTapHold(e, this.getComponent());
-				}, 1000);
-
-			}, {passive: true});
-
-			this.element.addEventListener("touchend", (e) => {
-				clearTimeout(tapHold);
-				tapHold = null;
-			});
-		}
 	}
 
 	//build header element for header
@@ -320,14 +202,15 @@ class Column extends CoreFeature{
 		//set min width if present
 		this.setMinWidth(parseInt(def.minWidth));
 
+		if (def.maxInitialWidth) {
+			this.maxInitialWidth = parseInt(def.maxInitialWidth);
+		}
+		
 		if(def.maxWidth){
 			this.setMaxWidth(parseInt(def.maxWidth));
 		}
 
 		this.reinitializeWidth();
-
-		//set tooltip if present
-		this.tooltip = this.definition.tooltip;
 
 		//set orizontal text alignment
 		this.hozAlign = this.definition.hozAlign;
@@ -415,7 +298,6 @@ class Column extends CoreFeature{
 			}
 			break;
 			case "undefined":
-			case "null":
 			el.innerHTML = "";
 			break;
 			default:
@@ -504,6 +386,8 @@ class Column extends CoreFeature{
 		if(this.groupElement){
 			this.columns.push(column);
 			this.groupElement.appendChild(column.getElement());
+
+			column.columnRendered();
 		}else{
 			console.warn("Column Warning - Column being attached to another column instead of column group");
 		}
@@ -517,6 +401,8 @@ class Column extends CoreFeature{
 		// var parentHeight = this.parent.isGroup ? this.parent.getGroupElement().clientHeight : this.parent.getHeadersElement().clientHeight;
 
 		this.element.style.height = parentHeight + "px";
+
+		this.dispatch("column-height", this, this.element.style.height);
 
 		if(this.isGroup){
 			this.groupElement.style.minHeight = (parentHeight - this.contentElement.offsetHeight) + "px";
@@ -546,6 +432,8 @@ class Column extends CoreFeature{
 		this.columns.forEach(function(column){
 			column.clearVerticalAlign();
 		});
+
+		this.dispatch("column-height", this, "");
 	}
 
 	bindModuleColumns (){
@@ -569,6 +457,10 @@ class Column extends CoreFeature{
 	//return field name
 	getField(){
 		return this.field;
+	}
+
+	getTitleDownload() {
+		return this.titleDownload;
 	}
 
 	//return the first column in a group
@@ -703,7 +595,7 @@ class Column extends CoreFeature{
 				cell.hide();
 			});
 
-			this.dispatch("column-hide", this);
+			this.dispatch("column-hide", this, responsiveToggle);
 
 			if(!silent){
 				this.dispatchExternal("columnVisibilityChanged", this.getComponent(), false);
@@ -823,7 +715,7 @@ class Column extends CoreFeature{
 	}
 
 	getHeight(){
-		return this.element.offsetHeight;
+		return Math.ceil(this.element.getBoundingClientRect().height);
 	}
 
 	setMinWidth(minWidth){
@@ -891,6 +783,8 @@ class Column extends CoreFeature{
 		if(this.titleFormatterRendered){
 			this.titleFormatterRendered();
 		}
+
+		this.dispatch("column-rendered", this);
 	}
 
 	//////////////// Cell Management /////////////////
@@ -928,18 +822,19 @@ class Column extends CoreFeature{
 
 		//set width if present
 		if(typeof this.definition.width !== "undefined" && !force){
+			// maxInitialWidth ignored here as width specified
 			this.setWidth(this.definition.width);
 		}
 
 		this.dispatch("column-width-fit-before", this);
 
-		this.fitToData();
+		this.fitToData(force);
 
 		this.dispatch("column-width-fit-after", this);
 	}
 
 	//set column width to maximum cell width for non group columns
-	fitToData(){
+	fitToData(force){
 		if(this.isGroup){
 			return;
 		}
@@ -964,7 +859,11 @@ class Column extends CoreFeature{
 			});
 
 			if(maxWidth){
-				this.setWidthActual(maxWidth + 1);
+				var setTo = maxWidth + 1;
+				if (this.maxInitialWidth && !force) {
+					setTo = Math.min(setTo, this.maxInitialWidth);
+				}
+				this.setWidthActual(setTo);
 			}
 		}
 	}

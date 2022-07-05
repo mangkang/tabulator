@@ -9,11 +9,19 @@ export default function (cell, formatterParams, onRendered) {
 	var value = cell.getValue();
 
 	if(typeof DT != "undefined"){
-		var newDatetime = DT.fromFormat(value, inputFormat);
+		var newDatetime;
+
+		if(DT.isDateTime(value)){
+			 newDatetime = value;
+		 }else if(inputFormat === "iso"){
+			 newDatetime = DT.fromISO(String(value));
+		 }else{
+			 newDatetime = DT.fromFormat(String(value), inputFormat);
+		 }
 
 		if (newDatetime.isValid){
 			if(humanize){
-				// return moment.duration(newDatetime.diff(date)).humanize(suffix);
+				return newDatetime.diff(date, unit).toHuman()  + (suffix ? " " + suffix : "");
 			}else{
 				return parseInt(newDatetime.diff(date, unit)[unit]) + (suffix ? " " + suffix : "");
 			}

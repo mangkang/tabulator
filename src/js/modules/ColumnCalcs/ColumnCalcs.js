@@ -51,8 +51,9 @@ class ColumnCalcs extends Module{
 		this.subscribe("row-added", this.rowsUpdated.bind(this));
 		this.subscribe("column-moved", this.recalcActiveRows.bind(this));
 		this.subscribe("column-add", this.recalcActiveRows.bind(this));
-		this.subscribe("data-refeshed", this.recalcActiveRows.bind(this));
+		this.subscribe("data-refreshed", this.recalcActiveRowsRefresh.bind(this));
 		this.subscribe("table-redraw", this.tableRedraw.bind(this));
+		this.subscribe("rows-visible", this.visibleRows.bind(this));
 
 		this.registerTableFunction("getCalcResults", this.getResults.bind(this));
 		this.registerTableFunction("recalc", this.userRecalc.bind(this));
@@ -78,9 +79,29 @@ class ColumnCalcs extends Module{
 	///////// Internal Logic //////////
 	///////////////////////////////////
 
+	visibleRows(viewable, rows){
+		if(this.topRow){
+			rows.unshift(this.topRow);
+		}
+
+		if(this.botRow){
+			rows.push(this.botRow);
+		}
+	
+		return rows;
+	}
+
 	rowsUpdated(row){
 		if(this.table.options.groupBy){
 			this.recalcRowGroup(this);
+		}else{
+			this.recalcActiveRows();
+		}
+	}
+
+	recalcActiveRowsRefresh(){
+		if(this.table.options.groupBy && this.table.options.dataTreeStartExpanded && this.table.options.dataTree){
+			this.recalcAll();
 		}else{
 			this.recalcActiveRows();
 		}
@@ -93,7 +114,6 @@ class ColumnCalcs extends Module{
 	cellValueChanged(cell){
 		if(cell.column.definition.topCalc || cell.column.definition.bottomCalc){
 			if(this.table.options.groupBy){
-
 				if(this.table.options.columnCalcs == "table" || this.table.options.columnCalcs == "both"){
 					this.recalcActiveRows();
 				}
@@ -101,7 +121,6 @@ class ColumnCalcs extends Module{
 				if(this.table.options.columnCalcs != "table"){
 					this.recalcRowGroup(cell.row);
 				}
-
 			}else{
 				this.recalcActiveRows();
 			}
@@ -193,7 +212,7 @@ class ColumnCalcs extends Module{
 
 		if(this.botInitialized){
 			this.botInitialized = false;
-			this.table.footerManager.remove(this.botElement);
+			this.footerRemove(this.botElement);
 			changed = true;
 		}
 
@@ -211,7 +230,7 @@ class ColumnCalcs extends Module{
 
 	initializeBottomRow(){
 		if(!this.botInitialized){
-			this.table.footerManager.prepend(this.botElement);
+			this.footerPrepend(this.botElement);
 			this.botInitialized = true;
 		}
 	}
@@ -273,7 +292,6 @@ class ColumnCalcs extends Module{
 
 			if(this.table.options.groupBy && this.table.options.columnCalcs !== "table"){
 
-
 				var groups = this.table.modules.groupRows.getChildGroups();
 
 				groups.forEach((group) => {
@@ -318,12 +336,12 @@ class ColumnCalcs extends Module{
 
 	rowsToData(rows){
 		var data = [];
-
+		
 		rows.forEach((row) => {
 			data.push(row.getData());
 
 			if(this.table.options.dataTree && this.table.options.dataTreeChildColumnCalcs){
-				if(row.modules.dataTree.open){
+				if(row.modules.dataTree && row.modules.dataTree.open){
 					var children = this.rowsToData(this.table.modules.dataTree.getFilteredTreeChildren(row));
 					data = data.concat(children);
 				}
@@ -354,7 +372,7 @@ class ColumnCalcs extends Module{
 
 		row.getComponent = () => {
 			if(!row.component){
-				row.component = new CalcComponent(this);
+				row.component = new CalcComponent(row);
 			}
 
 			return row.component;

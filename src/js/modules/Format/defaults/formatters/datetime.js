@@ -6,18 +6,24 @@ export default function(cell, formatterParams, onRendered){
 	var value = cell.getValue();
 
 	if(typeof DT != "undefined"){
-		var newDatetime = (window.DateTime || luxon.DateTime).fromFormat(value, inputFormat);
+		var newDatetime;
+
+		if(DT.isDateTime(value)){
+			 newDatetime = value;
+		 }else if(inputFormat === "iso"){
+			 newDatetime = DT.fromISO(String(value));
+		 }else{
+			 newDatetime = DT.fromFormat(String(value), inputFormat);
+		 }
 
 		if(newDatetime.isValid){
-
 			if(formatterParams.timezone){
-				newDatetime = newDatetime.shiftTimezone(formatterParams.timezone);
+				newDatetime = newDatetime.setZone(formatterParams.timezone);
 			}
 
 			return newDatetime.toFormat(outputFormat);
 		}else{
-
-			if(invalid === true){
+			if(invalid === true || !value){
 				return value;
 			}else if(typeof invalid === "function"){
 				return invalid(value);

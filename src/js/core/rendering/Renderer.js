@@ -79,7 +79,7 @@ export default class Renderer extends CoreFeature{
 	}
 
 	scrollToRowNearestTop(row){
-		//determin weather the row is nearest the top or bottom of the table, retur true for top or false for bottom
+		//determine weather the row is nearest the top or bottom of the table, retur true for top or false for bottom
 	}
 
 	visibleRows(includingBuffer){
@@ -146,8 +146,9 @@ export default class Renderer extends CoreFeature{
 				if(!ifVisible){
 					if(Helpers.elVisible(rowEl)){
 						offset = Helpers.elOffset(rowEl).top - Helpers.elOffset(this.elementVertical).top;
-
+						
 						if(offset > 0 && offset < this.elementVertical.clientHeight - rowEl.offsetHeight){
+							resolve();
 							return false;
 						}
 					}
@@ -185,6 +186,10 @@ export default class Renderer extends CoreFeature{
 						this.elementVertical.scrollTop = this.elementVertical.scrollTop - this.elementVertical.clientHeight + rowEl.offsetHeight;
 					}
 
+					break;
+
+					case "top":
+					this.elementVertical.scrollTop = rowEl.offsetTop;					
 					break;
 				}
 
