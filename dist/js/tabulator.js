@@ -1208,8 +1208,6 @@
       value: function checkDefinition() {
         var _this2 = this;
 
-        console.log('Column.defaultOptionList ', Column.defaultOptionList);
-        console.log('this.definition ', this.definition);
         Object.keys(this.definition).forEach(function (key) {
           if (Column.defaultOptionList.indexOf(key) === -1) {
             console.warn("Invalid column definition option in '" + (_this2.field || _this2.definition.title) + "' column:", key);
@@ -12894,8 +12892,15 @@
   function progress (cell, onRendered, success, cancel, editorParams) {
     var _element$getElementsB, _element$getElementsB2;
 
-    var element = cell.getElement();
-    max = typeof editorParams.max === "undefined" ? ((_element$getElementsB = element.getElementsByTagName("div")[0]) === null || _element$getElementsB === void 0 ? void 0 : _element$getElementsB.getAttribute("max")) || 100 : editorParams.max, min = typeof editorParams.min === "undefined" ? ((_element$getElementsB2 = element.getElementsByTagName("div")[0]) === null || _element$getElementsB2 === void 0 ? void 0 : _element$getElementsB2.getAttribute("min")) || 0 : editorParams.min, percent = (max - min) / 100, value = cell.getValue() || 0, handle = document.createElement("div"), bar = document.createElement("div"), mouseDrag, mouseDragWidth; //set new value
+    var element = cell.getElement(),
+        max = typeof editorParams.max === "undefined" ? ((_element$getElementsB = element.getElementsByTagName("div")[0]) === null || _element$getElementsB === void 0 ? void 0 : _element$getElementsB.getAttribute("max")) || 100 : editorParams.max,
+        min = typeof editorParams.min === "undefined" ? ((_element$getElementsB2 = element.getElementsByTagName("div")[0]) === null || _element$getElementsB2 === void 0 ? void 0 : _element$getElementsB2.getAttribute("min")) || 0 : editorParams.min,
+        percent = (max - min) / 100,
+        value = cell.getValue() || 0,
+        handle = document.createElement("div"),
+        bar = document.createElement("div"),
+        mouseDrag,
+        mouseDragWidth; //set new value
 
     function updateValue() {
       var style = window.getComputedStyle(element, null);
@@ -16032,7 +16037,7 @@
     return this.table.rowManager.activeRows.indexOf(cell.getRow()._getSelf()) + 1;
   }
 
-  function handle$1 (cell, formatterParams, onRendered) {
+  function handle (cell, formatterParams, onRendered) {
     cell.getElement().classList.add("tabulator-row-handle");
     return "<div class='tabulator-row-handle-box'><div class='tabulator-row-handle-bar'></div><div class='tabulator-row-handle-bar'></div><div class='tabulator-row-handle-bar'></div></div>";
   }
@@ -16124,7 +16129,7 @@
     buttonTick: buttonTick,
     buttonCross: buttonCross,
     rownum: rownum,
-    handle: handle$1,
+    handle: handle,
     responsiveCollapse: responsiveCollapse,
     rowSelection: rowSelection
   };
